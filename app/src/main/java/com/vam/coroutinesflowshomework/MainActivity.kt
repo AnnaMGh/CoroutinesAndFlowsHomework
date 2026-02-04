@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
-import com.vam.coroutinesflowshomework.homework.BirdSingRootScreen
+import com.vam.coroutinesflowshomework.homework3.BirdSingRootScreen
 import com.vam.coroutinesflowshomework.ui.theme.CoroutinesFlowsHomeworkTheme
 
 class MainActivity : ComponentActivity() {

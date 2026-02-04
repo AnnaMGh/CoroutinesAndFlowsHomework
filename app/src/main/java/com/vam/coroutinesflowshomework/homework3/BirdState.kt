@@ -1,4 +1,4 @@
-package com.vam.coroutinesflowshomework.homework
+package com.vam.coroutinesflowshomework.homework3
 
 data class BirdState(
     val currentBird: BirdModel? = null,

@@ -1,4 +1,4 @@
-package com.vam.coroutinesflowshomework.homework
+package com.vam.coroutinesflowshomework.homework3
 
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.flow.MutableStateFlow

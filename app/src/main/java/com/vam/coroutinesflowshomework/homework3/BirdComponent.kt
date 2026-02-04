@@ -1,4 +1,4 @@
-package com.vam.coroutinesflowshomework.homework
+package com.vam.coroutinesflowshomework.homework3
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -22,6 +22,11 @@ import com.vam.coroutinesflowshomework.ui.theme.CoroutinesFlowsHomeworkTheme
 
 @Composable
 fun BirdComponent(modifier: Modifier = Modifier, birdModel: BirdModel) {
+
+    LaunchedEffect(birdModel.id) {
+        println(birdModel.song)
+    }
+
     Column(
         modifier = modifier
             .background(

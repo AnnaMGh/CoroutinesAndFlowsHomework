@@ -1,4 +1,4 @@
-package com.vam.coroutinesflowshomework.homework
+package com.vam.coroutinesflowshomework.homework3
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +13,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -22,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.vam.coroutinesflowshomework.ui.theme.CoroutinesFlowsHomeworkTheme
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -45,8 +43,6 @@ fun BirdSingScreen(
     birds: List<BirdModel>,
     onAction: (BirdAction) -> Unit
 ) {
-
-    val scope = rememberCoroutineScope()
 
     Column(
         modifier = modifier
@@ -76,7 +72,6 @@ fun BirdSingScreen(
         ) {
             items(items = birds, key = { it.id }) { bird ->
                 Button(onClick = {
-                    scope.launch { println(bird.song) }
                     onAction(BirdAction.Sing(bird.id))
                 }) {
                     Icon(
