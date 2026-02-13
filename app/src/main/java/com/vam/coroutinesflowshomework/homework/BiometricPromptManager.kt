@@ -35,26 +35,21 @@ class BiometricPromptManager(
                 promptInfo.setNegativeButtonText("Cancel")
             }
 
+            if (!continuation.isActive) return@suspendCancellableCoroutine
             when (manager.canAuthenticate(authenticators)) {
                 BiometricManager.BIOMETRIC_ERROR_HW_UNAVAILABLE -> {
-                    if (continuation.isActive) {
-                        continuation.resume(BiometricResult.HardwareUnavailable)
-                        return@suspendCancellableCoroutine
-                    }
+                    continuation.resume(BiometricResult.HardwareUnavailable)
+                    return@suspendCancellableCoroutine
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NO_HARDWARE -> {
-                    if (continuation.isActive) {
-                        continuation.resume(BiometricResult.FeatureUnavailable)
-                        return@suspendCancellableCoroutine
-                    }
+                    continuation.resume(BiometricResult.FeatureUnavailable)
+                    return@suspendCancellableCoroutine
                 }
 
                 BiometricManager.BIOMETRIC_ERROR_NONE_ENROLLED -> {
-                    if (continuation.isActive) {
-                        continuation.resume(BiometricResult.AuthenticationNotSet)
-                        return@suspendCancellableCoroutine
-                    }
+                    continuation.resume(BiometricResult.AuthenticationNotSet)
+                    return@suspendCancellableCoroutine
                 }
 
                 else -> Unit
