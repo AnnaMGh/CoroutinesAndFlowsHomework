@@ -26,7 +26,10 @@ class LeaderboardViewModel : ViewModel() {
 
     init {
 
-        _leaderboard.addListener(_listener)
+        viewModelScope.launch {
+            _leaderboard.addListener(_listener)
+        }
+
         _state.update {
             it.copy(
                 isRegistered = true
@@ -52,7 +55,9 @@ class LeaderboardViewModel : ViewModel() {
     fun onAction(action: LeaderboardAction) {
         when (action) {
             is LeaderboardAction.OnRegister -> {
-                _leaderboard.addListener(_listener)
+                viewModelScope.launch {
+                    _leaderboard.addListener(_listener)
+                }
                 _state.update {
                     it.copy(
                         isRegistered = true
@@ -62,7 +67,9 @@ class LeaderboardViewModel : ViewModel() {
             }
 
             is LeaderboardAction.OnUnregister -> {
-                _leaderboard.removeListener(_listener)
+                viewModelScope.launch {
+                    _leaderboard.removeListener(_listener)
+                }
                 _state.update {
                     it.copy(
                         isRegistered = false
