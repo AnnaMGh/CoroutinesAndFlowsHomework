@@ -1,4 +1,4 @@
-package com.vam.coroutinesflowshomework.homework
+package com.vam.coroutinesflowshomework.homework_my_solution
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
