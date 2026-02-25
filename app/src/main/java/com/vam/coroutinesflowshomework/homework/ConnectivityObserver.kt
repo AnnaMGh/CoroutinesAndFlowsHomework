@@ -11,7 +11,9 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.launch
 
 
-class AppConnectivityManager(val appContext: Context) {
+class ConnectivityObserver(appContext: Context) {
+    private val connectivityManager =
+        appContext.applicationContext.getSystemService(ConnectivityManager::class.java) as ConnectivityManager
 
     private val networkRequest: NetworkRequest = NetworkRequest.Builder()
         .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
@@ -20,7 +22,7 @@ class AppConnectivityManager(val appContext: Context) {
         .addTransportType(NetworkCapabilities.TRANSPORT_CELLULAR)
         .build()
 
-    fun listenInternetConnection(): Flow<Boolean> {
+    fun observeInternetConnection(): Flow<Boolean> {
         return callbackFlow {
 
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
@@ -35,10 +37,7 @@ class AppConnectivityManager(val appContext: Context) {
                 }
             }
 
-            val connectivityManager =
-                appContext.applicationContext.getSystemService(ConnectivityManager::class.java) as ConnectivityManager
             connectivityManager.requestNetwork(networkRequest, networkCallback)
-
 
             awaitClose {
                 connectivityManager.unregisterNetworkCallback(networkCallback)

@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.vam.coroutinesflowshomework"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -42,6 +42,8 @@ android {
 }
 
 dependencies {
+
+    implementation(libs.google.android.gms.play.services.location)
 
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
