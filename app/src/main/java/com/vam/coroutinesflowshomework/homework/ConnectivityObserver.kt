@@ -5,10 +5,19 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.net.NetworkRequest
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class ConnectivityObserver(appContext: Context) {
@@ -24,7 +33,6 @@ class ConnectivityObserver(appContext: Context) {
 
     fun observeInternetConnection(): Flow<Boolean> {
         return callbackFlow {
-
             val networkCallback = object : ConnectivityManager.NetworkCallback() {
                 override fun onAvailable(network: Network) {
                     super.onAvailable(network)
@@ -44,4 +52,34 @@ class ConnectivityObserver(appContext: Context) {
             }
         }
     }
+
+    fun observeNetworkReachability(milliseconds: Int = 3000): Flow<Boolean> =
+        flow {
+            while (currentCoroutineContext().isActive) {
+                emit(hasInternetHttp(milliseconds))
+                delay(milliseconds.toLong())
+            }
+        }.cancellable()
+            .flowOn(Dispatchers.IO)
+
+
+    private suspend fun hasInternetHttp(timeout: Int = 3000): Boolean =
+        withContext(Dispatchers.IO) {
+            try {
+                val url = java.net.URL("https://clients3.google.com/generate_204")
+                (url.openConnection() as java.net.HttpURLConnection).run {
+                    connectTimeout = timeout
+                    readTimeout = timeout
+                    instanceFollowRedirects = false
+                    useCaches = false
+                    requestMethod = "GET"
+                    connect()
+                    responseCode == 204
+                }
+            } catch (e: Exception) {
+                ensureActive()
+                false
+            }
+        }
 }
+

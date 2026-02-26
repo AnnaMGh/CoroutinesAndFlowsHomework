@@ -6,16 +6,15 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.runningFold
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.zip
 import java.time.ZonedDateTime
 
 class BannerViewModel(appContext: Context) : ViewModel() {
@@ -25,41 +24,52 @@ class BannerViewModel(appContext: Context) : ViewModel() {
     private val _isLocationPermissionGranted = MutableStateFlow(false)
     val isLocationPermissionGranted = _isLocationPermissionGranted.asStateFlow()
 
-    val isInternet = connectivityObserver
-        .observeInternetConnection()
-        .onEach { println("isInternet: isInternet $it") }
+    val isInternet = combine(
+        connectivityObserver.observeInternetConnection(),
+        connectivityObserver.observeNetworkReachability(),
+    ) { systemConnected, actuallyReachable ->
+        systemConnected && actuallyReachable
+    }.distinctUntilChanged()
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             false
         )
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val logs = isInternet
-        .flatMapLatest { isConnected ->
-            flow {
-                val reachable = if (!isConnected) false else hasInternetHttp()
-                emit(reachable)
+
+    val logs = _isLocationPermissionGranted
+        .flatMapLatest { granted ->
+            if (!granted) flowOf(emptyList())
+            else combine(
+                connectivityObserver.observeInternetConnection(),
+                connectivityObserver.observeNetworkReachability()
+            ) { systemConnected, actuallyReachable ->
+                systemConnected && actuallyReachable
             }
-        }
-        .zip(locationObserver.observeLocation(1000L)) { hasNetworkConnection, location ->
-            val time = ZonedDateTime.now()
-            NetworkLog(
-                DisplayableTimestamp(time, time.toDisplayableValue()),
-                hasNetworkConnection,
-                location.latitude,
-                location.longitude
-            )
-        }
-        .runningFold(initial = emptyList<NetworkLog>()) { list, current ->
-            list + current
+                .distinctUntilChanged()
+                .combine(
+                    locationObserver.observeLocation(1000L)
+                ) { hasNetwork, location ->
+                    val time = ZonedDateTime.now()
+                    NetworkLog(
+                        DisplayableTimestamp(time, time.toDisplayableValue()),
+                        hasNetwork,
+                        location.latitude,
+                        location.longitude
+                    )
+                }
+                .distinctUntilChanged { old, new ->  // only log when network status changes
+                    old.isNetworkAvailable == new.isNetworkAvailable
+                }
+                .runningFold(emptyList<NetworkLog>()) { list, current ->
+                    list + current
+                }
         }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(5000),
             emptyList()
         )
-
 
     init {
         _isLocationPermissionGranted.value = ContextCompat.checkSelfPermission(
