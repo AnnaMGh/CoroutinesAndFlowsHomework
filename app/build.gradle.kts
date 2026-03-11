@@ -46,6 +46,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
+    testImplementation(kotlin("test"))
     testImplementation(libs.turbine)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.assertk)

@@ -41,32 +41,26 @@ class SearchViewModelTest {
     }
 
     @Test
-    fun testSearchDatabase() = runTest(testDispatchers.testDispatcher) {
+    fun `empty query shows validation error`() = runTest {
         viewModel.state.test {
-            var result = awaitItem()
-            assertThat(result.searchResults).isEmpty()
-
-            viewModel.onSearchQueryChange("Max")
-            advanceTimeBy(301) // debounce
-            runCurrent() // enter async
-            advanceTimeBy(601) // async
-            result = awaitItem()
-            assertThat(result.query).isEqualTo("Max")
-            result = awaitItem()
-            assertThat(result.isLoading).isTrue()
-            result = awaitItem()
-            assertThat(result.searchResults[0]).isEqualTo("Max")
-            assertThat(result.isLoading).isFalse()
-
-
             viewModel.onSearchQueryChange("")
             advanceTimeBy(301) // debounce
-            result = awaitItem()
+            var result = awaitItem()
             assertThat(result.query).isEqualTo("")
             result = awaitItem()
+            assertThat(result.searchResults.isEmpty()).isTrue()
             assertThat(result.isLoading).isFalse()
             assertThat(result.validationMessages).isEqualTo("Input cannot be empty.")
 
+            cancelAndConsumeRemainingEvents()
+        }
+    }
+
+    @Test
+    fun `digit in query shows validation error`() = runTest {
+        viewModel.state.test {
+            var result = awaitItem()
+            assertThat(result.searchResults).isEmpty()
 
             viewModel.onSearchQueryChange("1")
             advanceTimeBy(301) // debounce
@@ -81,4 +75,43 @@ class SearchViewModelTest {
         }
     }
 
+    @Test
+    fun `valid query returns matching results`() = runTest { viewModel.state.test {
+        var result = awaitItem()
+        assertThat(result.searchResults).isEmpty()
+
+        viewModel.onSearchQueryChange("Max")
+        advanceTimeBy(301) // debounce
+        runCurrent() // enter async
+        advanceTimeBy(601) // async
+        result = awaitItem()
+        assertThat(result.query).isEqualTo("Max")
+        result = awaitItem()
+        assertThat(result.isLoading).isTrue()
+        result = awaitItem()
+        assertThat(result.searchResults[0]).isEqualTo("Max")
+        assertThat(result.isLoading).isFalse()
+
+        cancelAndConsumeRemainingEvents()
+    }}
+
+    @Test
+    fun `valid query no duplicate`() = runTest { viewModel.state.test {
+        var result = awaitItem()
+        assertThat(result.searchResults).isEmpty()
+
+        viewModel.onSearchQueryChange("Max")
+        advanceTimeBy(301) // debounce
+        runCurrent() // enter async
+        advanceTimeBy(601) // async
+        result = awaitItem()
+        assertThat(result.query).isEqualTo("Max")
+        result = awaitItem()
+        assertThat(result.isLoading).isTrue()
+        result = awaitItem()
+        assertThat(result.searchResults.size).isEqualTo(1)
+        assertThat(result.isLoading).isFalse()
+
+        cancelAndConsumeRemainingEvents()
+    }}
 }
